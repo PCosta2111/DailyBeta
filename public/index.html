@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f0e8">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>Daily Beta | v2.0</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./game.css">
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body class="v2">
+    <div class="site">
+      <header class="masthead">
+        <a class="brand" href="./" aria-label="Daily Beta home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>daily<span class="brand-accent">beta</span><span class="brand-period">.</span></span>
+        </a>
+        <div class="masthead-right">
+          <nav class="game-modes" aria-label="Puzzle mode">
+            <a id="daily-link" href="./">Daily</a>
+            <a id="endless-link" href="./?route=1">Endless</a>
+          </nav>
+        </div>
+      </header>
+      <main>
+        <section class="problem-heading" aria-label="Your boulder">
+          <div>
+            <p class="problem-meta">v2.0 / <span id="problem-label"></span></p>
+            <h1 id="puzzle-name"></h1>
+            <p id="puzzle-note">Grab a limb. Find your balance.</p>
+          </div>
+          <div class="route-tools">
+            <button type="button" id="next-route" class="secondary-button" hidden>Next route</button>
+            <details class="route-options" id="route-options" hidden>
+              <summary>Choose seed</summary>
+              <form id="route-seed-form" class="route-seed-form">
+                <label for="route-seed">Route seed</label>
+                <input id="route-seed" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" required>
+                <button type="submit" class="secondary-button">Load</button>
+              </form>
+            </details>
+          </div>
+        </section>
+        <p id="notice" class="route-error" role="alert" hidden></p>
+        <div class="movement-toolbar">
+          <span id="interaction-hint" role="status">Drag a hand or foot onto a hold.</span>
+          <div class="movement-actions">
+            <button type="button" id="dyno-toggle" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16 16 4M5 4h11v11"/></svg><span>Dyno <span id="dyno-state">OFF</span></span><kbd>D</kbd></button>
+            <button type="button" id="dyno-options" class="icon-button" aria-label="Dyno options" aria-controls="dyno-controls" aria-expanded="false" title="Dyno options"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/><circle cx="7" cy="5" r="2"/><circle cx="13" cy="10" r="2"/><circle cx="7" cy="15" r="2"/></svg></button>
+          </div>
+        </div>
+        <section id="dyno-controls" class="dyno-controls" popover="manual" role="dialog" aria-labelledby="dyno-options-title">
+          <div class="popup-heading"><strong id="dyno-options-title">Dyno options</strong><button id="close-dyno-options" type="button" class="icon-button" aria-label="Close dyno options">×</button></div>
+          <div class="dyno-picks">
+            <span id="dyno-target">Pick a target on the wall</span>
+            <div class="action-row" role="group" aria-label="Catching hands">
+              <button type="button" class="secondary-button" data-catch="leftHand" aria-pressed="false">LH</button>
+              <button type="button" class="secondary-button" data-catch="rightHand" aria-pressed="false">RH</button>
+              <button type="button" class="secondary-button" data-catch="bothHands" aria-pressed="true">Both</button>
+            </div>
+            <label>Grip <select id="dyno-grip" aria-label="Dyno catch grip"><option value="" disabled selected>Pick target</option></select></label>
+          </div>
+          <div class="dyno-assistance">
+            <label class="easy-dyno-toggle"><input id="easy-dyno" type="checkbox" aria-describedby="easy-dyno-note">Easy dyno</label>
+            <span id="easy-dyno-note">Show hand paths and suggested power.</span>
+            <button id="suggested-launch" type="button" class="secondary-button" hidden>Use suggested power</button>
+          </div>
+          <p>Pick a target, then pull a catching hand back and release. Feet cut loose.</p>
+          <div id="force-feedback" role="status" aria-live="polite">Pull farther for more power. The short arrow shows direction only. Judge the jump, then release.</div>
+          <details class="keyboard-launch">
+            <summary>Keyboard launch</summary>
+            <label for="launch-x">Horizontal force</label><input id="launch-x" type="range" min="-102" max="102" step="0.5" value="0">
+            <label for="launch-y">Upward force</label><input id="launch-y" type="range" min="0" max="102" step="0.5" value="35">
+            <button type="button" id="launch-button" class="secondary-button">Launch</button>
+          </details>
+        </section>
+        <section class="beta-wall-controls" id="beta-wall-controls" aria-label="v2 beta replay" hidden>
+          <div><strong id="beta-step-label"></strong><p id="beta-step-description"></p></div>
+          <div class="action-row">
+            <button type="button" id="beta-previous" class="secondary-button">Previous</button>
+            <button type="button" id="beta-next" class="secondary-button">Next</button>
+            <button type="button" id="beta-exit" class="secondary-button">Your result</button>
+          </div>
+        </section>
+        <div class="wall-frame">
+          <div class="wall" id="wall" aria-label="Climbing wall. Drag a limb, or select a limb and then a hold.">
+            <span class="wall-grid" aria-hidden="true"></span>
+            <span class="wall-side-label" id="wall-label" aria-hidden="true"></span>
+            <div id="holds"></div>
+            <svg class="climber" id="climber" viewBox="0 0 82 100" aria-hidden="true"></svg>
+            <svg id="aim-overlay" viewBox="0 0 82 100" aria-hidden="true"></svg>
+            <div id="dyno-readout" class="dyno-readout" role="status" hidden></div>
+            <div id="limb-handles" role="group" aria-label="Move a limb"></div>
+            <span class="wall-ground" aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="wall-footer"><span id="wall-caption">Snap, choose your placement, then set it.</span><span>FIXED REACH / v2.0</span></div>
+        <div class="attempt-bar" aria-label="Your attempt">
+          <div class="energy-card">
+            <div class="energy-heading"><span>Energy</span><strong id="energy-value"></strong></div>
+            <div class="energy-track" id="energy-track" role="progressbar" aria-label="Grip energy" aria-valuemin="0" aria-valuemax="160"><div id="energy-fill"></div></div>
+          </div>
+          <div class="attempt-stats">
+            <div><strong id="move-count">0</strong><span>moves</span></div>
+            <div><strong id="fall-count">0</strong><span>falls</span></div>
+            <div><strong id="undo-count">0</strong><span>undos</span></div>
+          </div>
+          <div class="action-row">
+            <button type="button" id="undo-button" class="secondary-button">Undo</button>
+            <button type="button" id="retry-button" class="secondary-button">Retry</button>
+          </div>
+        </div>
+        <div class="status-card" id="status-card" role="status" aria-live="polite"><strong id="status-title"></strong><p id="status-message"></p></div>
+        <section id="result-actions" hidden>
+          <button type="button" id="share-button" class="secondary-button" hidden>Share your send</button>
+          <section class="optimal-section" aria-label="v2 optimal beta">
+            <button type="button" id="reveal-beta" class="secondary-button">Show optimal beta</button>
+            <div id="beta-content" hidden>
+              <p id="beta-summary" class="v2-note" role="status"></p>
+              <div id="beta-playback" hidden>
+                <button type="button" id="watch-beta" class="secondary-button">Watch on the wall</button>
+                <ol id="beta-sequence" class="beta-sequence"></ol>
+              </div>
+            </div>
+          </section>
+          <div class="share-result" id="share-result" hidden><label for="share-text">Copy your result</label><textarea id="share-text" rows="5" readonly></textarea></div>
+        </section>
+        <details class="move-history">
+          <summary>Your moves <span id="history-count">0</span></summary>
+          <ol id="move-history"></ol>
+        </details>
+        <details class="help-detail">
+          <summary>How v2.0 works</summary>
+          <p>Drag the LH, RH, LF or RF handle to a hold. It snaps into place, then a popup lets you choose the grip or footwork and set the move. Drop a foot onto the upper lip to suggest a heel, underneath to suggest a toe hook, or in the middle for a toe tap. Only holds with the right shape accept hooks. Close the popup or press Escape to cancel.</p>
+          <p>You can also click a limb, then a hold, without dragging. Keys 1/2 select hands, 3/4 select feet, D toggles Dyno and Z undoes. All controls work with Tab and Enter. Dropping away from a hold cancels the move.</p>
+          <p>Arms, legs and torso have fixed lengths. Elbows and knees bend; the body can lean. A move that needs a longer limb causes a fall. Small footholds still perform foot switches. Match both hands on the orange top jug to send.</p>
+          <p>For a dyno, switch Dyno ON, pick a target and pull a catching hand back like a slingshot. Both hands catch by default; the options button beside Dyno opens floating controls for LH, RH, Both, grip and keyboard force. Close it to keep the wall clear. Opening options never moves the wall. More pull means more power; release to jump. The short arrow has a fixed size and shows direction only unless Easy dyno is on. Two standing feet are needed to launch; feet cut loose after the jump.</p>
+          <p>Switch on Easy dyno to see the hand trajectories and a suggested power percentage. Use suggested power fills in the keyboard controls so you can try a supported launch. Switch Easy dyno off to return to direction-only aiming. Your preference is remembered on this device.</p>
+          <p>During a jump the catching arms extend toward the target. A hand can catch as it reaches the hold on the way up or down; two-hand jumps need both hands to arrive together. A little extra height is fine if you can catch on descent. Too little lift, a sideways miss, or flying past too fast still causes a fall.</p>
+          <p>Routes mix traverses, switchbacks, compression, heel-hook setups and big dyno gaps. Holds are staggered, and an earlier handhold may become your next foothold. Every setting has a checked beta, but you'll need to read the line rather than climb two neat columns.</p>
+          <p>After a send or fall, Show optimal beta searches this v2 wall from its original stance: fewest moves, then lowest energy. Watch on the wall steps through real v2 placements and dynos without changing your attempt or save. A beta is marked optimal only after the solver proves the bound and verifies every launch; if a launch prevents that proof, it labels the checked route as unproven instead.</p>
+          <p>This is an animated, simplified climbing game, not a physics simulator or climbing instruction. Daily and Endless progress stay in this browser. Reduced-motion preferences skip the flight and fall animations.</p>
+        </details>
+        <div id="placement-popup" class="move-planner" popover="auto" role="dialog" aria-labelledby="placement-title">
+          <div class="popup-content">
+            <div class="popup-heading"><strong id="placement-title"></strong><button id="cancel-placement" type="button" class="icon-button" aria-label="Cancel placement">×</button></div>
+            <p class="planner-prompt">Choose how it sits.</p>
+            <div id="placement-options" class="technique-buttons" role="group" aria-label="Grip or footwork"></div>
+            <div id="placement-preview" class="move-preview" aria-live="polite"><strong id="placement-outcome"></strong><p id="placement-reason"></p></div>
+            <button id="set-placement" type="button" class="commit-button">Set placement</button>
+          </div>
+        </div>
+      </main>
+      <footer class="site-footer">DAILY BETA v2.0 / PROGRESS STAYS ON THIS DEVICE</footer>
+    </div>
+  </body>
+</html>
